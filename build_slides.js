@@ -45,8 +45,9 @@ async function icon(Comp, color) {
 const bullets = (items, extra = {}) => items.map((t, j) => ({ text: t, options: { bullet: { indent: 12 }, breakLine: j < items.length - 1, paraSpaceAfter: 5, ...extra } }));
 const title = (s, text) => s.addText(text, { x: 0.45, y: 0.3, w: 12.4, h: 0.8, fontFace: F, fontSize: 40, bold: true, color: C.teal, margin: 0, valign: 'middle', isTextBox: true });
 
-async function addSlides(pres) {
+async function addSlides(pres, opts = {}) {
 
+  if (!opts.skipSummary) {
   // ================= SLAJD 1: założenia, realizacja, co zadziałało / nie, learningi =================
   const s1 = pres.addSlide();
   s1.background = { color: C.white };
@@ -103,6 +104,7 @@ async function addSlides(pres) {
     s1.addText(learn[i], { x: x + 0.52, y: ly + 0.58, w: lw - 0.58, h: 1.15, fontFace: F, fontSize: 12.5, color: C.white, valign: 'top', margin: 0, isTextBox: true });
   }
   s1.addNotes(`Jeden slajd zamiast angielskich slajdów o panelu B2B. Założenia z business case FY26: 166 klientów, 928 zamówień, 464 tys. €. Panel się przyjął: ${T.clients} kont, ${pct(T.sales / BC.sales)} budżetu sprzedaży (${vsPlan()}), 59% klientów wraca z drugim zamówieniem. Słabo z liczbą zamówień (${T.orders} = ${pct(T.orders / BC.orders)} celu): klienci zamawiają rzadko i dużo, bez kampanii, bez kontaktu w sezonie, a korekty cen w Sage nie wracały do panelu. Stąd 4 learningi na FY27.`);
+  }
 
   // ================= SLAJD 2: wynik + start nowej platformy =================
   const s2 = pres.addSlide();
