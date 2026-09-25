@@ -4,6 +4,28 @@ const ReactDOMServer = require('react-dom/server');
 const sharp = require('sharp');
 const fa = require('react-icons/fa');
 
+// ---- DANE: raport KPI B2B z 25.08.2026 (Sage ZORDDET, WEB-B2B, narastająco) ----
+const KPI = { date: '25.08.2026', clients: 174, withOrder: 127, orders: 308, sales: 396757 };
+// ---- Nowe zamówienia z panelu sbm-partners.com po 25.08 (do uzupełnienia) ----
+const PANEL = { from: '26.08', to: '', orders: 0, sales: 0, newClientsWithOrder: 0 };
+const BC = { clients: 166, orders: 928, sales: 464000, aov: 500, start: new Date('2026-03-16'), end: new Date('2026-10-01') };
+
+const T = {
+  orders: KPI.orders + PANEL.orders,
+  sales: KPI.sales + PANEL.sales,
+  withOrder: KPI.withOrder + PANEL.newClientsWithOrder,
+  clients: KPI.clients,
+};
+T.aov = Math.round(T.sales / T.orders);
+T.noOrder = T.clients - T.withOrder;
+const asOf = PANEL.orders ? PANEL.to : KPI.date;
+const asOfDate = (d => new Date(d.split('.').reverse().join('-')))(asOf);
+const periodPct = (asOfDate - BC.start) / (BC.end - BC.start);
+const pct = x => Math.round(x * 100) + '%';
+const nbsp = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
+const eur = n => nbsp(n) + '\u00A0€';
+const ktys = n => (n / 1000).toFixed(1).replace('.', ',') + '\u00A0tys.\u00A0€';
+
 const C = { dark: '1F4E3D', green: '2E7D5B', tint: 'EEF4F0', ink: '1E2A24', muted: '5E6B64', ok: '2E7D5B', bad: 'C0392B', amber: 'E0A100', white: 'FFFFFF', grey: 'D9E1DC' };
 const FONT = 'Calibri', HFONT = 'Cambria';
 
@@ -26,8 +48,8 @@ async function icon(Comp, color) {
   const cards = [
     { t: 'Założenia FY26', ic: fa.FaBullseye, col: C.green, items: ['166 klientów na platformie (66 obecnych + 100 nowych)', '464 tys. € sprzedaży netto', '928 zamówień, średnio 500 € na zamówienie'] },
     { t: 'Jak to zrobiliśmy', ic: fa.FaCogs, col: C.green, items: ['Cała baza klientów przeniesiona na platformę', 'Onboarding przez przedstawicieli: cel 5 nowych kont tygodniowo na osobę', 'Cotygodniowy raport KPI (Power BI + tracker klientów)'] },
-    { t: 'Co zadziałało', ic: fa.FaCheck, col: C.ok, items: ['Cała baza na platformie: 166 kont (100%)', '311,6\u00A0tys.\u00A0€ sprzedaży = 67% budżetu', 'Średnie zamówienie 1\u00A0574\u00A0€ (ponad 3× plan)'] },
-    { t: 'Co nie zadziałało', ic: fa.FaTimes, col: C.bad, items: ['198 zamówień = 21% celu: rzadkie, duże zamówienia „na stock”', '55 kont bez żadnego zamówienia', 'Brak komunikacji po rejestracji i działań retencyjnych'] },
+    { t: 'Co zadziałało', ic: fa.FaCheck, col: C.ok, items: [`${T.clients} kont na platformie = ${pct(T.clients / BC.clients)} założonej bazy`, `${ktys(T.sales)} sprzedaży = ${pct(T.sales / BC.sales)} budżetu, ${pct(T.sales / (BC.sales * periodPct))} planu do dziś`, `Średnie zamówienie ${eur(T.aov)} (${(T.aov / BC.aov).toFixed(1).replace('.', ',')}× plan)`] },
+    { t: 'Co nie zadziałało', ic: fa.FaTimes, col: C.bad, items: [`${T.orders} zamówień = ${pct(T.orders / BC.orders)} celu: rzadkie, duże zamówienia „na stock”`, `${T.noOrder} kont bez żadnego zamówienia`, 'Brak komunikacji po rejestracji i działań retencyjnych'] },
   ];
   const cw = 2.895, cg = 0.25, cy = 1.35, ch = 3.45;
   for (let i = 0; i < cards.length; i++) {
@@ -57,19 +79,19 @@ async function icon(Comp, color) {
     s1.addText(String(i + 1), { x, y: ly + 0.78, w: 0.46, h: 0.46, fontFace: FONT, fontSize: 16, bold: true, color: C.dark, align: 'center', valign: 'middle', margin: 0, isTextBox: true });
     s1.addText(learn[i], { x: x + 0.58, y: ly + 0.66, w: lw - 0.62, h: 1.1, fontFace: FONT, fontSize: 13, color: C.white, valign: 'top', margin: 0, isTextBox: true });
   }
-  s1.addNotes('Jeden slajd zamiast 9–14. Plan zakładał 166 kont i 928 zamówień. Platforma przyjęła się (cała baza jest na niej, 2/3 budżetu sprzedaży), ale klienci zamawiają rzadko i dużo. Wnioski na FY27: aktywacja zamiast samej rejestracji, automatyczna komunikacja, częstotliwość zamówień, nowe sklepy z lead genu.');
+  s1.addNotes(`Jeden slajd zamiast 9–14. Plan zakładał 166 kont i 928 zamówień. Platforma przyjęła się (${T.clients} kont, ${pct(T.sales / BC.sales)} budżetu sprzedaży, przed planem do dziś), ale klienci zamawiają rzadko i dużo (${T.orders} zamówień = ${pct(T.orders / BC.orders)} celu).`+'  Wnioski na FY27: aktywacja zamiast samej rejestracji, automatyczna komunikacja, częstotliwość zamówień, nowe sklepy z lead genu.');
 
   // ---------- SLAJD 2 ----------
   const s2 = pres.addSlide();
   s2.background = { color: C.white };
   s2.addText('B2B PL: wynik i nowy panel B2B', { x: 0.5, y: 0.35, w: 12.3, h: 0.75, fontFace: HFONT, fontSize: 28, bold: true, color: C.dark, margin: 0, isTextBox: true });
-  s2.addText('Wynik FY26 YTD vs budżet', { x: 0.5, y: 1.25, w: 6.8, h: 0.4, fontFace: FONT, fontSize: 16, bold: true, color: C.muted, margin: 0, isTextBox: true });
+  s2.addText(`Wynik FY26 vs budżet · stan na ${asOf}`, { x: 0.5, y: 1.25, w: 6.8, h: 0.4, fontFace: FONT, fontSize: 16, bold: true, color: C.muted, margin: 0, isTextBox: true });
 
   const kpis = [
-    { v: '311 557 €', l: 'Sprzedaż netto', b: 'budżet 464 000 €', p: 0.671, pl: '67%', col: C.green },
-    { v: '111 / 166', l: 'Klienci z zamówieniem', b: '55 kont uśpionych', p: 0.669, pl: '67%', col: C.green },
-    { v: '198', l: 'Zamówienia', b: 'budżet 928', p: 0.213, pl: '21%', col: C.bad },
-    { v: '1 574 €', l: 'Średnia wartość zamówienia', b: 'plan 500 €', p: 1.0, pl: '315%', col: C.amber },
+    { v: eur(T.sales), l: 'Sprzedaż netto', b: `budżet ${eur(BC.sales)} · ${pct(T.sales / (BC.sales * periodPct))} planu do dziś`, p: T.sales / BC.sales, pl: pct(T.sales / BC.sales), col: C.green },
+    { v: `${T.withOrder}\u00A0/\u00A0${T.clients}`, l: 'Klienci z zamówieniem', b: `${T.noOrder} kont bez zamówienia`, p: T.withOrder / T.clients, pl: pct(T.withOrder / T.clients), col: C.green },
+    { v: nbsp(T.orders), l: 'Zamówienia', b: `budżet ${nbsp(BC.orders)}`, p: T.orders / BC.orders, pl: pct(T.orders / BC.orders), col: C.bad },
+    { v: eur(T.aov), l: 'Średnia wartość zamówienia', b: `plan ${eur(BC.aov)}`, p: 1.0, pl: pct(T.aov / BC.aov), col: C.amber },
   ];
   const ky0 = 1.8, kh = 1.0, bx = 3.55, bw = 3.0;
   kpis.forEach((k, i) => {
@@ -79,7 +101,7 @@ async function icon(Comp, color) {
     s2.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: bx, y: y + 0.28, w: bw, h: 0.26, fill: { color: C.grey }, line: { color: C.grey }, rectRadius: 0.13 });
     s2.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: bx, y: y + 0.28, w: Math.max(0.26, bw * k.p), h: 0.26, fill: { color: k.col }, line: { color: k.col }, rectRadius: 0.13 });
     s2.addText(k.pl, { x: bx + bw + 0.1, y: y + 0.2, w: 0.75, h: 0.42, fontFace: FONT, fontSize: 16, bold: true, color: k.col === C.amber ? 'A87800' : k.col, margin: 0, valign: 'middle', isTextBox: true });
-    s2.addText(k.b, { x: bx, y: y + 0.58, w: bw, h: 0.28, fontFace: FONT, fontSize: 11, color: C.muted, margin: 0, isTextBox: true });
+    s2.addText(k.b, { x: bx, y: y + 0.58, w: bw + 0.9, h: 0.28, fontFace: FONT, fontSize: 11, color: C.muted, margin: 0, isTextBox: true });
   });
 
   // Cele FY27
@@ -113,8 +135,8 @@ async function icon(Comp, color) {
     ], { x: fx + 0.42, y, w: pw - 0.95, h: 0.75, fontFace: FONT, fontSize: 14, valign: 'top', margin: 0, isTextBox: true });
   });
 
-  s2.addText('Dane: raport KPI B2B, FY26 YTD (Power BI, WEB-B2B). Panel: funkcje na podstawie testów, wrzesień 2026.', { x: 0.5, y: 6.95, w: 12.3, h: 0.3, fontFace: FONT, fontSize: 10, color: C.muted, margin: 0, isTextBox: true });
-  s2.addNotes('Wynik: 2/3 budżetu sprzedaży i 2/3 bazy z zamówieniem, ale tylko 21% zamówień. Średnie zamówienie ponad 3× plan, bo klienci robią duże zamówienia na stock. Nowy panel odpowiada na te wnioski: ceny i rabaty liczone od razu w koszyku, kredyt kupiecki zamiast przedpłaty, rabat za krótszy termin płatności, automatyczne maile onboardingowe. Cele FY27: 900 tys. €, 1 125 zamówień.');
+  s2.addText(`Dane: raport KPI B2B z ${KPI.date} (Sage ZORDDET, WEB-B2B, narastająco)${PANEL.orders ? ` + nowe zamówienia z panelu sbm-partners.com ${PANEL.from}–${PANEL.to}` : ''}. Nowy panel: funkcje na podstawie testów, wrzesień 2026.`, { x: 0.5, y: 6.95, w: 12.3, h: 0.3, fontFace: FONT, fontSize: 10, color: C.muted, margin: 0, isTextBox: true });
+  s2.addNotes(`Wynik na ${asOf}: ${pct(T.sales / BC.sales)} budżetu sprzedaży (${pct(T.sales / (BC.sales * periodPct))} planu do dziś), ${pct(T.withOrder / T.clients)} kont z zamówieniem, ale tylko ${pct(T.orders / BC.orders)} celu zamówień. Średnie zamówienie ${(T.aov / BC.aov).toFixed(1).replace('.', ',')}× plan, bo klienci robią duże zamówienia na stock.`+'  Nowy panel odpowiada na te wnioski: ceny i rabaty liczone od razu w koszyku, kredyt kupiecki zamiast przedpłaty, rabat za krótszy termin płatności, automatyczne maile onboardingowe. Cele FY27: 900 tys. €, 1 125 zamówień.');
 
   await pres.writeFile({ fileName: 'B2B_PL_kickoff_FY27_2_slajdy.pptx' });
   console.log('ok');
