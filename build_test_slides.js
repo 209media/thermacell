@@ -9,7 +9,9 @@ const fa = require('react-icons/fa');
 // ---- DANE: raport KPI B2B z 25.08.2026 (Sage ZORDDET, WEB-B2B, narastająco) ----
 const KPI = { date: '25.08.2026', clients: 174, withOrder: 127, orders: 308, sales: 396757 };
 // ---- Nowe zamówienia z panelu sbm-partners.com po 25.08 (do uzupełnienia, gdy będzie eksport) ----
-const PANEL = { from: '26.08', to: '', orders: 0, sales: 0, newClientsWithOrder: 0 };
+// Zrzut listy zamówień z panelu, nr 323–331 (31.08–25.09.2026), wartości netto w PLN; nr 322 z 25.08 jest już w raporcie.
+// 108 402,67 zł, po 2,5% rabacie za przelew 7 dni (nr 327, 328) 108 288,17 zł × 0,236967 EUR/PLN (kurs z prezentacji) = 25 661 €.
+const PANEL = { from: '26.08', to: '25.09.2026', orders: 9, sales: 25661, newClientsWithOrder: 0 };
 const BC = { clients: 166, orders: 928, sales: 464000, aov: 500, start: new Date('2026-03-16'), end: new Date('2026-10-01') };
 // Przyrost od przypisania klientów do KAM (12.06), zakładka „Śledzenie” raportu KPI
 const KAM = { orders: 28 + 55, sales: 26077 + 35131 };
@@ -26,6 +28,7 @@ const asOf = PANEL.orders ? PANEL.to : KPI.date;
 const asOfDate = new Date(asOf.split('.').reverse().join('-'));
 const periodPct = (asOfDate - BC.start) / (BC.end - BC.start);
 const pct = x => Math.round(x * 100) + '%';
+const vsPlan = () => T.sales >= BC.sales * periodPct ? 'przed planem do dziś' : `${pct(T.sales / (BC.sales * periodPct))} planu do dziś`;
 const nbsp = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 const eur = n => nbsp(n) + ' €';
 const ktys = n => (n / 1000).toFixed(1).replace('.', ',') + ' tys. €';
@@ -83,7 +86,7 @@ const source = (s, text) => s.addText(text, { x: 0.45, y: 7.05, w: 12.4, h: 0.28
     { h: 'KAM i kontrola wyniku', ic: fa.FaChartLine, items: [
       `Od 12.06 klienci przypisani do KAM: +${KAM.orders} zamówień i ${ktys(KAM.sales)}`,
       'Cotygodniowy raport KPI: wynik na tle BC co tydzień',
-      `Sprzedaż przed planem do dziś (${pct(T.sales / (BC.sales * periodPct))}) mimo słabego sezonu`,
+      `${pct(T.sales / BC.sales)} budżetu rocznego na tydzień przed końcem BC`,
     ] },
   ];
   const gw = 4.0, gg = 0.2, gy = 3.1, gh = 2.55, hh = 0.55;
@@ -103,7 +106,7 @@ const source = (s, text) => s.addText(text, { x: 0.45, y: 7.05, w: 12.4, h: 0.28
     { text: 'panel jako kanał się sprawdził, klienci go używają i wracają. W FY27 skalujemy: nowa platforma od 1.10, program partnerski i kampania B2B.', options: { color: C.white } },
   ], { x: 0.75, y: wy1, w: 11.9, h: wh1, fontFace: F, fontSize: 15, valign: 'middle', margin: 0, isTextBox: true });
   source(s1, `Dane: raport KPI B2B z ${KPI.date} (Sage ZORDDET, WEB-B2B)${PANEL.orders ? ` + nowe zamówienia z panelu ${PANEL.from}–${PANEL.to}` : ''}. Powroty: Sage ZORDDET 16.03–22.07.2026. Przyrost KAM: zakładka „Śledzenie”.`);
-  s1.addNotes(`Test panelu trwał od 19 marca. Klienci przyjęli kanał: ${T.clients} kont, ${T.withOrder} z zamówieniem, ${ktys(T.sales)} sprzedaży, przed planem do dziś. 59% klientów wraca z drugim zamówieniem w ciągu 60 dni. Technicznie panel działał: rejestracja, rabaty, ceny netto, terminy płatności. Od przypisania klientów do KAM 12 czerwca przybyło ${KAM.orders} zamówień i ${ktys(KAM.sales)}.`);
+  s1.addNotes(`Test panelu trwał od 19 marca. Klienci przyjęli kanał: ${T.clients} kont, ${T.withOrder} z zamówieniem, ${ktys(T.sales)} sprzedaży, ${pct(T.sales / BC.sales)} budżetu rocznego (${vsPlan()}). 59% klientów wraca z drugim zamówieniem w ciągu 60 dni. Technicznie panel działał: rejestracja, rabaty, ceny netto, terminy płatności. Od przypisania klientów do KAM 12 czerwca przybyło ${KAM.orders} zamówień i ${ktys(KAM.sales)}.`);
 
   // ================= SLAJD 2: CO NIE ZAGRAŁO =================
   const s2 = pres.addSlide();

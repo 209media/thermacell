@@ -9,7 +9,9 @@ const fa = require('react-icons/fa');
 // ---- DANE: raport KPI B2B z 25.08.2026 (Sage ZORDDET, WEB-B2B, narastająco) ----
 const KPI = { date: '25.08.2026', clients: 174, withOrder: 127, orders: 308, sales: 396757 };
 // ---- Nowe zamówienia z panelu sbm-partners.com po 25.08 (do uzupełnienia, gdy będzie eksport) ----
-const PANEL = { from: '26.08', to: '', orders: 0, sales: 0, newClientsWithOrder: 0 };
+// Zrzut listy zamówień z panelu, nr 323–331 (31.08–25.09.2026), wartości netto w PLN; nr 322 z 25.08 jest już w raporcie.
+// 108 402,67 zł, po 2,5% rabacie za przelew 7 dni (nr 327, 328) 108 288,17 zł × 0,236967 EUR/PLN (kurs z prezentacji) = 25 661 €.
+const PANEL = { from: '26.08', to: '25.09.2026', orders: 9, sales: 25661, newClientsWithOrder: 0 };
 const BC = { clients: 166, orders: 928, sales: 464000, aov: 500, start: new Date('2026-03-16'), end: new Date('2026-10-01') };
 const FY27 = { sales: '900 tys. €', orders: '1 125', aov: '800 €', newStores: '350', active: '95%' };
 
@@ -25,6 +27,7 @@ const asOf = PANEL.orders ? PANEL.to : KPI.date;
 const asOfDate = new Date(asOf.split('.').reverse().join('-'));
 const periodPct = (asOfDate - BC.start) / (BC.end - BC.start);
 const pct = x => Math.round(x * 100) + '%';
+const vsPlan = () => T.sales >= BC.sales * periodPct ? 'przed planem do dziś' : `${pct(T.sales / (BC.sales * periodPct))} planu do dziś`;
 const nbsp = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 const eur = n => nbsp(n) + ' €';
 const ktys = n => (n / 1000).toFixed(1).replace('.', ',') + ' tys. €';
@@ -102,7 +105,7 @@ const title = (s, text) => s.addText(text, { x: 0.45, y: 0.3, w: 12.4, h: 0.8, f
     s1.addText(String(i + 1), { x, y: ly + 0.68, w: 0.42, h: 0.42, fontFace: F, fontSize: 15, bold: true, color: C.navy, align: 'center', valign: 'middle', margin: 0, isTextBox: true });
     s1.addText(learn[i], { x: x + 0.52, y: ly + 0.58, w: lw - 0.58, h: 1.15, fontFace: F, fontSize: 12.5, color: C.white, valign: 'top', margin: 0, isTextBox: true });
   }
-  s1.addNotes(`Jeden slajd zamiast angielskich slajdów o panelu B2B. Założenia z business case FY26: 166 klientów, 928 zamówień, 464 tys. €. Panel się przyjął: ${T.clients} kont, ${pct(T.sales / BC.sales)} budżetu sprzedaży i przed planem do dziś, 59% klientów wraca z drugim zamówieniem. Słabo z liczbą zamówień (${T.orders} = ${pct(T.orders / BC.orders)} celu): klienci zamawiają rzadko i dużo, bez kampanii, bez kontaktu w sezonie, a korekty cen w Sage nie wracały do panelu. Stąd 4 learningi na FY27.`);
+  s1.addNotes(`Jeden slajd zamiast angielskich slajdów o panelu B2B. Założenia z business case FY26: 166 klientów, 928 zamówień, 464 tys. €. Panel się przyjął: ${T.clients} kont, ${pct(T.sales / BC.sales)} budżetu sprzedaży (${vsPlan()}), 59% klientów wraca z drugim zamówieniem. Słabo z liczbą zamówień (${T.orders} = ${pct(T.orders / BC.orders)} celu): klienci zamawiają rzadko i dużo, bez kampanii, bez kontaktu w sezonie, a korekty cen w Sage nie wracały do panelu. Stąd 4 learningi na FY27.`);
 
   // ================= SLAJD 2: wynik + start nowej platformy =================
   const s2 = pres.addSlide();
