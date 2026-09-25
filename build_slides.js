@@ -45,10 +45,7 @@ async function icon(Comp, color) {
 const bullets = (items, extra = {}) => items.map((t, j) => ({ text: t, options: { bullet: { indent: 12 }, breakLine: j < items.length - 1, paraSpaceAfter: 5, ...extra } }));
 const title = (s, text) => s.addText(text, { x: 0.45, y: 0.3, w: 12.4, h: 0.8, fontFace: F, fontSize: 40, bold: true, color: C.teal, margin: 0, valign: 'middle', isTextBox: true });
 
-(async () => {
-  const pres = new pptxgen();
-  pres.layout = 'LAYOUT_WIDE'; // 13.33 x 7.5, jak prezentacja
-  pres.title = 'B2B PL – kick off FY27';
+async function addSlides(pres) {
 
   // ================= SLAJD 1: założenia, realizacja, co zadziałało / nie, learningi =================
   const s1 = pres.addSlide();
@@ -163,6 +160,16 @@ const title = (s, text) => s.addText(text, { x: 0.45, y: 0.3, w: 12.4, h: 0.8, f
   s2.addText(`Dane: raport KPI B2B z ${KPI.date} (Sage ZORDDET, WEB-B2B, narastająco)${PANEL.orders ? ` + nowe zamówienia z panelu sbm-partners.com ${PANEL.from}–${PANEL.to}` : ''}. 59% powrotów: Sage ZORDDET 16.03–22.07.2026.`, { x: 0.45, y: 6.95, w: 12.4, h: 0.3, fontFace: F, fontSize: 10, color: C.muted, margin: 0, isTextBox: true });
   s2.addNotes(`Wynik na ${asOf}: ${pct(T.sales / BC.sales)} budżetu sprzedaży (${pct(T.sales / (BC.sales * periodPct))} planu do dziś), ${pct(T.withOrder / T.clients)} kont z zamówieniem, ale tylko ${pct(T.orders / BC.orders)} celu zamówień. Średnie zamówienie ${x100(T.aov, BC.aov)} plan, bo klienci zamawiają rzadko i dużo. 1 października startuje nowa platforma: ceny i rabaty od razu w koszyku, kredyt kupiecki, rabat za krótszy termin płatności, automatyczne maile i program partnerski. Cele FY27: ${FY27.sales}, ${FY27.orders} zamówień.`);
 
-  await pres.writeFile({ fileName: 'B2B_PL_kickoff_FY27_2_slajdy.pptx' });
-  console.log('ok');
-})();
+}
+
+module.exports = { addSlides };
+
+if (require.main === module) {
+  (async () => {
+    const pres = new pptxgen();
+    pres.layout = 'LAYOUT_WIDE'; // 13.33 x 7.5, jak prezentacja
+    await addSlides(pres);
+    await pres.writeFile({ fileName: 'B2B_PL_kickoff_FY27_2_slajdy.pptx' });
+    console.log('ok');
+  })();
+}

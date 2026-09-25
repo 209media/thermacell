@@ -47,10 +47,7 @@ const title = (s, text) => s.addText(text, { x: 0.45, y: 0.3, w: 12.4, h: 0.75, 
 const subtitle = (s, text) => s.addText(text, { x: 0.45, y: 1.02, w: 12.4, h: 0.32, fontFace: F, fontSize: 14, color: C.muted, margin: 0, isTextBox: true });
 const source = (s, text) => s.addText(text, { x: 0.45, y: 7.05, w: 12.4, h: 0.28, fontFace: F, fontSize: 10, color: C.muted, margin: 0, isTextBox: true });
 
-(async () => {
-  const pres = new pptxgen();
-  pres.layout = 'LAYOUT_WIDE'; // 13.33 x 7.5, jak prezentacja
-  pres.title = 'Test panelu B2B FY26';
+async function addSlides(pres) {
 
   // ================= SLAJD 1: CO ZAGRAŁO =================
   const s1 = pres.addSlide();
@@ -169,6 +166,16 @@ const source = (s, text) => s.addText(text, { x: 0.45, y: 7.05, w: 12.4, h: 0.28
   source(s2, `Dane: raport KPI B2B z ${KPI.date} (Sage ZORDDET, WEB-B2B)${PANEL.orders ? ` + nowe zamówienia z panelu ${PANEL.from}–${PANEL.to}` : ''}; podsumowanie testu panelu B2B, lipiec 2026.`);
   s2.addNotes(`Liczba zamówień to główna luka: ${T.orders} wobec ${BC.orders} w planie. Trzy przyczyny: po pierwsze nie było procesu sprzedaży wokół panelu, KAM nie mieli ustalonego sposobu pracy ani narzędzi. Po drugie nie było procesu pozyskania nowych klientów, bez kampanii i budżetu baza rosła tylko z portfeli PH. Po trzecie polityka cenowa nie była gotowa: większość zamówień to deale spoza cennika, korygowane ręcznie w Sage, a klient widział w panelu inne kwoty niż na fakturze. Na FY27: proces sprzedaży, proces pozyskania, jeden cennik w panelu i program partnerski.`);
 
-  await pres.writeFile({ fileName: 'B2B_PL_test_panelu_FY26_2_slajdy.pptx' });
-  console.log('ok');
-})();
+}
+
+module.exports = { addSlides };
+
+if (require.main === module) {
+  (async () => {
+    const pres = new pptxgen();
+    pres.layout = 'LAYOUT_WIDE'; // 13.33 x 7.5, jak prezentacja
+    await addSlides(pres);
+    await pres.writeFile({ fileName: 'B2B_PL_test_panelu_FY26_2_slajdy.pptx' });
+    console.log('ok');
+  })();
+}
